@@ -1,0 +1,51 @@
+---
+title: "Analyzing the Most Emailed New York Times Articles"
+author: "Renee Watson"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+## Approach
+
+For this assignment, I selected the New York Times Most Popular API to explore which newspaper sections appear most frequently among the 20 most emailed articles over a 30-day period. I chose this API because I wanted to better understand what types of articles readers are interested in sharing. My plan is to use R to connect to the API, retrieve the article information, and convert the JSON response into a tidy data frame. I will focus on the article titles, sections, publication dates, and rankings. I also plan to group the articles by section and count how many articles appear in each category to identify which sections are most represented.
+
+One challenge I anticipate is working with the JSON response because some information may be nested or contain missing values. I will use the `jsonlite` and `dplyr` packages to extract and organize the data. Another potential challenge is authenticating the API request, so I will store my API key in an environment variable rather than including it directly in my code.
+
+Data source: New York Times Most Popular API
+
+https://developer.nytimes.com/docs/most-popular-product/1/overview
+
+API endpoint:
+
+https://api.nytimes.com/svc/mostpopular/v2/emailed/30.json
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

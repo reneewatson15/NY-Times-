@@ -21,7 +21,98 @@ API endpoint:
 
 https://api.nytimes.com/svc/mostpopular/v2/emailed/30.json
 
- 
+## Research question
+
+Which New York Times sections have the most articles among the 20 most emailed articles in the past 30 days?
+
+## API and request
+
+I selected the New York Times Most Popular API to examine which newspaper sections appear most frequently among the most frequently among the most emailed articles. I used the following endpoint: `https://api.nytimes.com/svc/mostpopular/v2/emailed/30.json`. This endpoint retrieves the 20 most emailed articles over a 30-day period. The 30 in the URL specifies the period in days, while the api-key query parameter authenticates the request. For security, I stored my API key in an environment variable rather than including it directly in my code. 
+
+## Request and tidy data frame
+
+```{r}
+library(httr)
+library(jsonlite)
+library(dplyr)
+library(tibble)
+library(knitr)
+
+
+api_key <- Sys.getenv("NYT_API_KEY")
+
+if (api_key == "") {
+  stop("API key not found. Check your .Renviron file.")
+}
+
+# NYT Most Popular API endpoint
+endpoint <- "https://api.nytimes.com/svc/mostpopular/v2/emailed/30.json"
+
+
+response <- GET(
+  endpoint,
+  query = list(`api-key` = api_key),
+  timeout(30)
+)
+
+
+stop_for_status(response)
+
+
+json_data <- fromJSON(
+  content(response, as = "text", encoding = "UTF-8"),
+  simplifyVector = FALSE
+)
+
+
+if (is.null(json_data$results)) {
+  stop("No article results were returned.")
+}
+```
+
+```{r}
+# Extract article information into a tidy data frame
+articles <- lapply(seq_along(json_data$results), function(i) {
+  article <- json_data$results[[i]]
+
+  tibble(
+    rank = i,
+    title = if (is.null(article$title)) NA_character_ else article$title,
+    section = if (is.null(article$section)) NA_character_ else article$section,
+    published_date = if (is.null(article$published_date)) NA_character_ else article$published_date
+  )
+}) %>%
+  bind_rows()
+
+kable(
+  head(articles),
+  caption = "First Six Most Emailed NYT Articles"
+)
+```
+
+
+## Analysis
+
+```{r}
+
+section_counts <- articles %>%
+  count(section, name = "article_count") %>%
+  arrange(desc(article_count))
+
+
+kable(
+  section_counts,
+  caption = "Number of Most Emailed NYT Articles by Section"
+)
+```
+
+
+The results show that the Opinion section had the most articles among the 20 most emailed New York Times articles, with 6 articles. Magazine, Science, U.S., and Well each had 2 articles, while Books, Food, Style, The Upshot, Travel, and Your Money each had 1 article. These findings suggest that Opinion articles were particularly prominent among the most emailed articles during the selected 30-day period. However, the results are limited to the 20 most emailed articles returned by the API and do not necessarily represent the popularity of all New York Times articles.
+
+
+## Data Cleaning Decisions
+
+The API returned data in JSON format, which I converted into an R list using the jsonlite package. Since the JSON response contains nested information, I extracted only the fields needed for my analysis: article title, section, publication date, and ranking. I assigned NA to any missing values to keep the data frame consistent. Finally, I grouped the articles by section and counted the number of articles in each section to determine which sections appeared most frequently among the most emailed articles. 
 
 
 
